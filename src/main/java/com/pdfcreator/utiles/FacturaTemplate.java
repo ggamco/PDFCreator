@@ -13,6 +13,7 @@ import com.itextpdf.text.pdf.GrayColor;
 import com.itextpdf.text.pdf.PdfContentByte;
 import com.itextpdf.text.pdf.PdfTemplate;
 import com.itextpdf.text.pdf.PdfWriter;
+import com.pdfcreator.exceptions.ListaProductosVacia;
 import com.pdfcreator.modelos.Producto;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -66,7 +67,7 @@ public class FacturaTemplate {
         this.fuenteBold = FontFactory.getFont("OpenSans_bold", BaseFont.IDENTITY_H, BaseFont.EMBEDDED, 10);
     }
 
-    public ByteArrayOutputStream CrearDocumento(Documento doc) {
+    public ByteArrayOutputStream CrearDocumento(Documento doc) throws ListaProductosVacia {
 
         this.baos = new ByteArrayOutputStream();
         this.document = new Document();
@@ -294,7 +295,7 @@ public class FacturaTemplate {
         ref.restoreState();
     }
 
-    private void addProductos() {
+    private void addProductos() throws ListaProductosVacia {
         
         PdfContentByte ref = writer.getDirectContent();
 
