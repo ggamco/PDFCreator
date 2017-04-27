@@ -1,10 +1,6 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.pdfcreator.servlets;
 
+import com.google.gson.Gson;
 import com.pdfcreator.exceptions.ListaProductosVacia;
 import com.pdfcreator.modelos.Producto;
 import com.pdfcreator.utiles.Documento;
@@ -30,20 +26,32 @@ public class PDF extends HttpServlet {
     @Override
     protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
-        Documento tipoDocumento = null;
+        Documento tipoDocumento;
+        
+        String docType = req.getParameter("tipo");
+        String userID = req.getParameter("userID");
+        
 
-        if (req.getParameter("tipo").equals("presupuesto")) {
-            tipoDocumento = Documento.PRESUPUESTO;
+        if (docType != null) {
+            if (docType.equals("presupuesto")) {
+                tipoDocumento = Documento.PRESUPUESTO;
+            } else {
+                tipoDocumento = Documento.FACTURA;
+            }
         } else {
-            tipoDocumento = Documento.FACTURA;
+            tipoDocumento = Documento.UNKWOWN;
         }
 
+        if (userID != null) {
+            
+        }
+        
         //TODO Recuperar lista de productos
         List<Producto> lista = new ArrayList<>();
 
         for (int i = 0; i < 18; i++) {
 
-            Producto p = null;
+            Producto p;
 
             if (i % 2 == 0) {
                 p = new Producto("HJAVA", "Hora imapartiendo clase de JAVA", (12 + (i * 3)), 1 + i, 0.21f, 0.07f, false, false);
@@ -65,7 +73,7 @@ public class PDF extends HttpServlet {
             resp.setHeader("Expires", "0");
             resp.setHeader("Cache-Control", "must-revalidate, post-check=0, pre-check=0");
             resp.setHeader("Pragma", "public");
-            resp.addHeader("Content-Disposition", "attachment; filename=" + tipoDocumento.tipo());
+            resp.addHeader("Content-Disposition", "attachment; filename=" + tipoDocumento.tipo() + ".pdf");
 
             resp.setContentType("application/pdf");
 

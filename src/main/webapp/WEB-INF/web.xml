@@ -4,9 +4,17 @@
         <servlet-name>PDF</servlet-name>
         <servlet-class>com.pdfcreator.servlets.PDF</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>Inicio</servlet-name>
+        <servlet-class>com.pdfcreator.servlets.Inicio</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>PDF</servlet-name>
         <url-pattern>/PDF</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>Inicio</servlet-name>
+        <url-pattern>/Inicio</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>

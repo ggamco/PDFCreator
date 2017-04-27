@@ -80,7 +80,7 @@ public class FacturaTemplate {
 
         document.open();
 
-        addTitulo("Presupuesto_00");
+        addTitulo(doc.tipo());
         
         cargarLogo();
         crearGraficos();
