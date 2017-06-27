@@ -21,6 +21,7 @@ import java.io.IOException;
 
 import static com.pdfcreator.logica.CalculosFacturas.*;
 import java.text.DecimalFormat;
+import java.util.Base64;
 
 /**
  *
@@ -28,7 +29,6 @@ import java.text.DecimalFormat;
  */
 public class FacturaTemplate {
 
-    private static String ruta;
     private static PdfWriter writer;
     private DecimalFormat df = new DecimalFormat("0.00");
     
@@ -39,18 +39,15 @@ public class FacturaTemplate {
     
     private ByteArrayOutputStream baos;
     private Document document;
-    //private Font fuenteLigth;
     private Font fuenteRegular;
     private Font fuenteSemiBold;
-    //private Font fuenteBold;
-
+    
     /**
      *
      * @param path -> Ruta a los recursos.
      * @param lista -> Productos facturados/presupuestados
      */
     public FacturaTemplate(String path) {
-        ruta = path;
         
         //registramos las fuentes personalizadas
         FontFactory.register(path + "/font/Open_Sans/OpenSans-Light.ttf", "OpenSans_light");
@@ -58,10 +55,8 @@ public class FacturaTemplate {
         FontFactory.register(path + "/font/Open_Sans/OpenSans-Semibold.ttf", "OpenSans_semibold");
         FontFactory.register(path + "/font/Open_Sans/OpenSans-Bold.ttf", "OpenSans_bold");
 
-        //this.fuenteLigth = FontFactory.getFont("OpenSans_light", BaseFont.IDENTITY_H, BaseFont.EMBEDDED, 10);
         this.fuenteRegular = FontFactory.getFont("OpenSans_regular", BaseFont.IDENTITY_H, BaseFont.EMBEDDED, 10);
         this.fuenteSemiBold = FontFactory.getFont("OpenSans_semibold", BaseFont.IDENTITY_H, BaseFont.EMBEDDED, 10);
-        //this.fuenteBold = FontFactory.getFont("OpenSans_bold", BaseFont.IDENTITY_H, BaseFont.EMBEDDED, 10);
     }
 
     public ByteArrayOutputStream CrearDocumento(Documento documento) throws ListaProductosVacia {
@@ -79,7 +74,7 @@ public class FacturaTemplate {
 
         addTitulo(documento.getTipoDocumento().tipo());
         
-        cargarLogo();
+        cargarLogo(documento);
         crearGraficos();
         crearTablaProductos();
         crearTablaDesglose();
@@ -97,13 +92,13 @@ public class FacturaTemplate {
         document.addTitle(titulo);
     }
 
-    private void cargarLogo() {
+    private void cargarLogo(Documento documento) {
 
         try {
-            Image image = Image.getInstance(ruta + "/logo.png");
-            System.out.println("Ancho: " + image.getWidth() + " Alto: " + image.getHeight());
-            image.scaleAbsolute(72f, 72f);
-            image.setAbsolutePosition(36f, 742f);
+            Image image = Image.getInstance(Base64.getDecoder().decode(documento.getLogo()));
+            float aspectRatio = ((image.getWidth() * 60) / image.getHeight());
+            image.scaleAbsolute(aspectRatio, 60f);
+            image.setAbsolutePosition(36f, 750f);
             document.add(image);
         } catch (BadElementException ex) {
             System.out.println("Error: " + ex.getLocalizedMessage());

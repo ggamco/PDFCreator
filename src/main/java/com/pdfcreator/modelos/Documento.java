@@ -8,6 +8,7 @@ public class Documento {
 
 	private int tipoDocumento;
 	private int numeroDocumento;
+	private String logo;
 	private Emisor emisor;
 	private Receptor receptor;
 	private List<Producto> listaProductos;
@@ -24,6 +25,14 @@ public class Documento {
 		this.emisor = emisor;
 		this.receptor = receptor;
 		this.listaProductos = listaProductos;
+	}
+
+	public String getLogo() {
+		return logo;
+	}
+
+	public void setLogo(String logo) {
+		this.logo = logo;
 	}
 
 	public int getNumeroDocumento() {

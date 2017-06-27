@@ -76,6 +76,7 @@ public class PDF extends HttpServlet {
 {
 	"tipoDocumento": 1,
 	"numeroDocumento": 1,
+	"logo": "base64string",
 	"emisor": {
 		"nombre": "Gustavo Gamboa Cordero",
 		"direccion": "Calle de la Aurora 29",
