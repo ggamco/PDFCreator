@@ -72,3 +72,48 @@ public class PDF extends HttpServlet {
     }
 
 }
+/*ESTRUCTURA JSON DATOS ENVIADOS
+{
+	"tipoDocumento": 1,
+	"numeroDocumento": 1,
+	"emisor": {
+		"nombre": "Gustavo Gamboa Cordero",
+		"direccion": "Calle de la Aurora 29",
+		"zipCode": 28760,
+		"ciudad": "Tres Cantos",
+		"cif": "X12345678",
+		"fecha": "27/06/2017",
+		"iban": "ES99 1234 5678 9012 3456 7890"
+	},
+	"receptor": {
+		"nombre": "Vass",
+		"direccion": "Avenida de Europa 1",
+		"zipCode": 28080,
+		"ciudad": "Alcobendas",
+		"cif": "B12345678",
+		"email": "gustavo.gamboa@mad.vass.es"
+	},
+	"listaProductos": [
+		{
+			"codigo": "HJAON",
+			"descripcion": "Hora de clase impartida al grupo T119. Incluye 7 alumnos ONLINE",
+			"cantidad": 20.00,
+			"precio": 37.00,
+			"IVA": 0.00,
+			"IRPF": 7.00,
+			"exentoIVA": true,
+			"exentoIRPF": false
+		},
+		{
+			"codigo": "HJAVA",
+			"descripcion": "Hora de clase impartida al grupo M37.",
+			"cantidad": 18.00,
+			"precio": 30.00,
+			"IVA": 0.00,
+			"IRPF": 7.00,
+			"exentoIVA": true,
+			"exentoIRPF": false
+		}
+	]	
+}
+*/
