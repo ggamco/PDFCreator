@@ -6,9 +6,14 @@ package com.pdfcreator.modelos;
  */
 public class Producto {
     
-    private String codigo, descripcion;
-    private float cantidad, precio, importe, IVA, IRPF;
-    private boolean exentoIVA, exentoIRPF;
+    private String codigo;
+    private String descripcion;
+    private float cantidad;
+    private float precio;
+    private float IVA;
+    private float IRPF;
+    private boolean exentoIVA;
+    private boolean exentoIRPF;
 
     public Producto(String codigo, String descripcion, float cantidad, float precio, float IVA, float IRPF, boolean exentoIVA, boolean exentoIRPF) {
         this.codigo = codigo;
@@ -17,7 +22,6 @@ public class Producto {
         this.precio = precio;
         this.IVA = IVA;
         this.IRPF = IRPF;
-        this.importe = getImporte();
         this.exentoIVA = exentoIVA;
         this.exentoIRPF = exentoIRPF;
     }
@@ -71,8 +75,7 @@ public class Producto {
     }
 
     public float getImporte() {
-        importe = cantidad * precio;
-        return importe;
+        return cantidad * precio;
     }
 
     public boolean isExentoIVA() {

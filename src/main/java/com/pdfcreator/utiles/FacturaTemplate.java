@@ -14,10 +14,10 @@ import com.itextpdf.text.pdf.PdfContentByte;
 import com.itextpdf.text.pdf.PdfTemplate;
 import com.itextpdf.text.pdf.PdfWriter;
 import com.pdfcreator.exceptions.ListaProductosVacia;
+import com.pdfcreator.modelos.Documento;
 import com.pdfcreator.modelos.Producto;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.List;
 
 import static com.pdfcreator.logica.CalculosFacturas.*;
 import java.text.DecimalFormat;
@@ -28,7 +28,7 @@ import java.text.DecimalFormat;
  */
 public class FacturaTemplate {
 
-    private static String path;
+    private static String ruta;
     private static PdfWriter writer;
     private DecimalFormat df = new DecimalFormat("0.00");
     
@@ -37,23 +37,20 @@ public class FacturaTemplate {
     private float IRPF;
     private float TOTAL;
     
-    private List<Producto> lista;
-            
     private ByteArrayOutputStream baos;
     private Document document;
-    private Font fuenteLigth;
+    //private Font fuenteLigth;
     private Font fuenteRegular;
     private Font fuenteSemiBold;
-    private Font fuenteBold;
+    //private Font fuenteBold;
 
     /**
      *
      * @param path -> Ruta a los recursos.
      * @param lista -> Productos facturados/presupuestados
      */
-    public FacturaTemplate(String path, List<Producto> lista) {
-        this.path = path;
-        this.lista = lista;
+    public FacturaTemplate(String path) {
+        ruta = path;
         
         //registramos las fuentes personalizadas
         FontFactory.register(path + "/font/Open_Sans/OpenSans-Light.ttf", "OpenSans_light");
@@ -61,48 +58,49 @@ public class FacturaTemplate {
         FontFactory.register(path + "/font/Open_Sans/OpenSans-Semibold.ttf", "OpenSans_semibold");
         FontFactory.register(path + "/font/Open_Sans/OpenSans-Bold.ttf", "OpenSans_bold");
 
-        this.fuenteLigth = FontFactory.getFont("OpenSans_light", BaseFont.IDENTITY_H, BaseFont.EMBEDDED, 10);
+        //this.fuenteLigth = FontFactory.getFont("OpenSans_light", BaseFont.IDENTITY_H, BaseFont.EMBEDDED, 10);
         this.fuenteRegular = FontFactory.getFont("OpenSans_regular", BaseFont.IDENTITY_H, BaseFont.EMBEDDED, 10);
         this.fuenteSemiBold = FontFactory.getFont("OpenSans_semibold", BaseFont.IDENTITY_H, BaseFont.EMBEDDED, 10);
-        this.fuenteBold = FontFactory.getFont("OpenSans_bold", BaseFont.IDENTITY_H, BaseFont.EMBEDDED, 10);
+        //this.fuenteBold = FontFactory.getFont("OpenSans_bold", BaseFont.IDENTITY_H, BaseFont.EMBEDDED, 10);
     }
 
-    public ByteArrayOutputStream CrearDocumento(Documento doc) throws ListaProductosVacia {
+    public ByteArrayOutputStream CrearDocumento(Documento documento) throws ListaProductosVacia {
 
         this.baos = new ByteArrayOutputStream();
         this.document = new Document();
 
         try {
-            this.writer = PdfWriter.getInstance(document, baos);
+            writer = PdfWriter.getInstance(document, baos);
         } catch (DocumentException ex) {
             System.out.println("Error: " + ex.getLocalizedMessage());
         }
 
         document.open();
 
-        addTitulo(doc.tipo());
+        addTitulo(documento.getTipoDocumento().tipo());
         
         cargarLogo();
         crearGraficos();
         crearTablaProductos();
         crearTablaDesglose();
-        cargarTextosBase(doc.tipo());
+        cargarTextosBase(documento.getTipoDocumento().tipo());
+        cargarTextosFactura(documento);
         
-        addProductos();
+        addProductos(documento);
 
         document.close();
 
         return baos;
     }
 
-    public void addTitulo(String titulo) {
+    private void addTitulo(String titulo) {
         document.addTitle(titulo);
     }
 
     private void cargarLogo() {
 
         try {
-            Image image = Image.getInstance(path + "/logo.png");
+            Image image = Image.getInstance(ruta + "/logo.png");
             System.out.println("Ancho: " + image.getWidth() + " Alto: " + image.getHeight());
             image.scaleAbsolute(72f, 72f);
             image.setAbsolutePosition(36f, 742f);
@@ -160,12 +158,8 @@ public class FacturaTemplate {
      */
     private void cargarTextosBase(String tipo) {
 
-        String[] datos = {"2017/01", "28/02/2017", "75891422W", "Calle Aurora 29, 28760 - Tres Cantos", "ES00 1234 5678 9876 5432 1234"};
-        String[] cliente = {"CICE S.A.", "Calle Povedilla nº4", "28029 - Madrid", "CIF: X12345678"};
-
         cargarTituloDocumento(tipo);
         cargarTextosReferencias(tipo);
-        cargarTextosFactura(datos, cliente);
     }
 
     private void cargarTituloDocumento(String tipo) {
@@ -202,8 +196,12 @@ public class FacturaTemplate {
         ref.restoreState();
     }
 
-    public void cargarTextosFactura(String[] datos, String[] cliente) {
+    public void cargarTextosFactura(Documento documento) {
 
+    	String[] datos = documento.getEmisor().toArray();
+    	String[] cliente = documento.getReceptor().toArray();
+    	String numeroDocumento = String.valueOf(documento.getNumeroDocumento());
+    	
         PdfContentByte ref = writer.getDirectContent();
         BaseFont bf = fuenteRegular.getBaseFont();
         ref.saveState();
@@ -211,9 +209,11 @@ public class FacturaTemplate {
         ref.setFontAndSize(bf, 10);
         ref.setColorFill(new GrayColor(0.35f));
 
+        ref.showTextAligned(0, numeroDocumento, 136, 690, 0);
+        
         for (int i = 0; i < datos.length; i++) {
             if (datos[i] != null) {
-                ref.showTextAligned(0, datos[i], 136, (690 - (i * 15)), 0);
+                ref.showTextAligned(0, datos[i], 136, (675 - (i * 15)), 0);
             }
         }
 
@@ -295,7 +295,7 @@ public class FacturaTemplate {
         ref.restoreState();
     }
 
-    private void addProductos() throws ListaProductosVacia {
+    private void addProductos(Documento documento) throws ListaProductosVacia {
         
         PdfContentByte ref = writer.getDirectContent();
 
@@ -304,9 +304,9 @@ public class FacturaTemplate {
         ref.saveState();
         ref.beginText();
         ref.setFontAndSize(bfTitulo, 8);
-        for (int i = 0; i < lista.size(); i++) {
+        for (int i = 0; i < documento.getListaProductos().size(); i++) {
             
-            Producto p = lista.get(i);
+            Producto p = documento.getListaProductos().get(i);
             
             ref.showTextAligned(0, p.getCodigo(), 36, 470 - (i*15), 0);
             ref.showTextAligned(0, p.getDescripcion(), 100, 470 - (i*15), 0);
@@ -326,9 +326,9 @@ public class FacturaTemplate {
             ref.showTextAligned(2, importe, 570, 470 - (i*15), 0);
         }
         
-        SUBTOTAL = calcularSUBTOTAL(lista);
-        IVA = calcularIVA(lista);
-        IRPF = calcularIRPF(lista);
+        SUBTOTAL = calcularSUBTOTAL(documento.getListaProductos());
+        IVA = calcularIVA(documento.getListaProductos());
+        IRPF = calcularIRPF(documento.getListaProductos());
         TOTAL = SUBTOTAL + IVA - IRPF;
         
         ref.showTextAligned(2, df.format(SUBTOTAL).concat(" €"), 570, 160, 0);

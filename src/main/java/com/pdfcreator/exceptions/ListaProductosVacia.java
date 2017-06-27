@@ -6,6 +6,8 @@ package com.pdfcreator.exceptions;
  */
 public class ListaProductosVacia extends Exception{
 
+    private static final long serialVersionUID = -7093395127661232747L;
+	
     private String mensaje;
 
     public ListaProductosVacia() {
