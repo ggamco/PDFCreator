@@ -27,7 +27,7 @@ public class Emisor {
 	}
 	
 	public String[] toArray() {
-		String[] datos = {fecha, cif, getDireccionDocumento(), iban};
+		String[] datos = {fecha, nombre, cif, getDireccionDocumento(), iban};
 		return datos;
 	}
 
@@ -44,7 +44,7 @@ public class Emisor {
 	}
 	
 	public String getDireccionDocumento() {
-		return direccion + " " + zipCode + " - " + ciudad;
+		return direccion + ", " + zipCode + " - " + ciudad;
 	}
 
 	public void setDireccion(String direccion) {

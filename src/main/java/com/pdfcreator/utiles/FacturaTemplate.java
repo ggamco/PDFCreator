@@ -184,11 +184,12 @@ public class FacturaTemplate {
         ref.beginText();
         ref.setFontAndSize(bfTitulo, 10);
         ref.setColorFill(new GrayColor(0.2f));
-        ref.showTextAligned(0, tipo + " Nº:", 36, 690, 0);
-        ref.showTextAligned(0, "Fecha:", 36, 675, 0);
-        ref.showTextAligned(0, "NIF:", 36, 660, 0);
-        ref.showTextAligned(0, "Dirección:", 36, 645, 0);
-        ref.showTextAligned(0, "Cuenta IBAN:", 36, 630, 0);
+        ref.showTextAligned(0, tipo + " Nº:", 36, 700, 0);
+        ref.showTextAligned(0, "Fecha:", 36, 685, 0);
+        ref.showTextAligned(0, "Nombre:", 36, 670, 0);
+        ref.showTextAligned(0, "NIF:", 36, 655, 0);
+        ref.showTextAligned(0, "Dirección:", 36, 640, 0);
+        ref.showTextAligned(0, "Cuenta IBAN:", 36, 625, 0);
 
         ref.showTextAligned(0, "Cliente:", 36, 600, 0);
 
@@ -209,11 +210,11 @@ public class FacturaTemplate {
         ref.setFontAndSize(bf, 10);
         ref.setColorFill(new GrayColor(0.35f));
 
-        ref.showTextAligned(0, numeroDocumento, 136, 690, 0);
+        ref.showTextAligned(0, numeroDocumento, 136, 700, 0);
         
         for (int i = 0; i < datos.length; i++) {
             if (datos[i] != null) {
-                ref.showTextAligned(0, datos[i], 136, (675 - (i * 15)), 0);
+                ref.showTextAligned(0, datos[i], 136, (685 - (i * 15)), 0);
             }
         }
 
