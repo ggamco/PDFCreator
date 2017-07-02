@@ -2,6 +2,8 @@ package com.pdfcreator.servlets;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -27,7 +29,9 @@ public class PDF extends HttpServlet {
 
 	@Override
     protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-
+		
+		String fecha = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+		
 		StringBuilder sb = new StringBuilder();
 		String line;
 		Gson gson = new GsonBuilder().setPrettyPrinting().create();
@@ -36,6 +40,7 @@ public class PDF extends HttpServlet {
 		try{
 			while((line = req.getReader().readLine()) != null){
 				sb.append(line);
+				System.out.println(sb.toString());
 			}
 			
 			documento = (Documento) gson.fromJson(sb.toString(), Documento.class);
@@ -51,11 +56,11 @@ public class PDF extends HttpServlet {
         
         try {
             baos = factura.CrearDocumento(documento);
-
+            StringBuilder fileName = new StringBuilder().append(documento.getNumeroDocumento()).append("_").append(fecha).append("_").append(documento.getTipoDocumento().tipo()).append(".pdf");
             resp.setHeader("Expires", "0");
             resp.setHeader("Cache-Control", "must-revalidate, post-check=0, pre-check=0");
             resp.setHeader("Pragma", "public");
-            resp.addHeader("Content-Disposition", "attachment; filename=" + documento.getTipoDocumento().tipo() + ".pdf");
+            resp.addHeader("Content-Disposition", "attachment; filename=" + fileName);
 
             resp.setContentType("application/pdf");
 

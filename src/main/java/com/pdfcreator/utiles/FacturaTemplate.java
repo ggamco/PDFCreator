@@ -71,25 +71,25 @@ public class FacturaTemplate {
         }
 
         document.open();
-
-        addTitulo(documento.getTipoDocumento().tipo());
-        
-        cargarLogo(documento);
+        try{
+        	addTitulo(documento.getTipoDocumento().tipo());
+        	cargarLogo(documento);
+        }catch(Exception e){}
         crearGraficos();
         crearTablaProductos();
         crearTablaDesglose();
-        cargarTextosBase(documento.getTipoDocumento().tipo());
-        cargarTextosFactura(documento);
-        
-        addProductos(documento);
-
+        try{
+        	cargarTextosBase(documento.getTipoDocumento().tipo());
+        	cargarTextosFactura(documento);
+        	addProductos(documento);
+        }catch(Exception e){}
         document.close();
 
         return baos;
     }
 
     private void addTitulo(String titulo) {
-        document.addTitle(titulo);
+    	document.addTitle(titulo);
     }
 
     private void cargarLogo(Documento documento) {
