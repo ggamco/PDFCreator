@@ -55,6 +55,7 @@ public class PDF extends HttpServlet {
 		}
 		
 		String path = getServletContext().getRealPath("/template");
+		System.out.println(path);
         FacturaTemplate factura = new FacturaTemplate(path);
 
         ByteArrayOutputStream baos;
