@@ -2,8 +2,8 @@ package com.pdfcreator.servlets;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+//import java.text.SimpleDateFormat;
+//import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -32,7 +32,7 @@ public class PDF extends HttpServlet {
 		
 		System.out.println("Estoy llamando al server PDF");
 		
-		String fecha = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+		//String fecha = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
 		
 		StringBuilder sb = new StringBuilder();
 		String line;

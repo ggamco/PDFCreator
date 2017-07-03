@@ -48,7 +48,6 @@ public class FacturaTemplate {
      * @param lista -> Productos facturados/presupuestados
      */
     public FacturaTemplate(String path) {
-        System.out.println("creo la template");
         //registramos las fuentes personalizadas
         FontFactory.register(path + "/font/Open_Sans/OpenSans-Light.ttf", "OpenSans_light");
         FontFactory.register(path + "/font/Open_Sans/OpenSans-Regular.ttf", "OpenSans_regular");
@@ -63,19 +62,19 @@ public class FacturaTemplate {
 
         this.baos = new ByteArrayOutputStream();
         this.document = new Document();
-        System.out.println("creo el documento");
+        
         try {
             writer = PdfWriter.getInstance(document, baos);
         } catch (DocumentException ex) {
             System.out.println("Error: " + ex.getLocalizedMessage());
         }
-        System.out.println(documento.getEmisor().getNombre());
+        
         document.open();
         try{
         	addTitulo(documento.getTipoDocumento().tipo());
         	cargarLogo(documento);
         }catch(Exception e){
-        	e.getLocalizedMessage();
+        	e.printStackTrace();
         }
         crearGraficos();
         crearTablaProductos();
@@ -85,7 +84,7 @@ public class FacturaTemplate {
         	cargarTextosFactura(documento);
         	addProductos(documento);
         }catch(Exception e){
-        	e.getLocalizedMessage();
+        	e.printStackTrace();
         }
         document.close();
 
@@ -93,6 +92,7 @@ public class FacturaTemplate {
     }
 
     private void addTitulo(String titulo) {
+    	System.out.println(titulo);
     	document.addTitle(titulo);
     }
 
@@ -100,6 +100,7 @@ public class FacturaTemplate {
 
         try {
             Image image = Image.getInstance(Base64.getDecoder().decode(documento.getLogo()));
+            System.out.println(documento.getLogo());
             float aspectRatio = ((image.getWidth() * 60) / image.getHeight());
             image.scaleAbsolute(aspectRatio, 60f);
             image.setAbsolutePosition(36f, 750f);
@@ -156,7 +157,7 @@ public class FacturaTemplate {
      * @param tipoDocumento -> Factura o Presupuesto
      */
     private void cargarTextosBase(String tipo) {
-
+    	System.out.println(tipo);
         cargarTituloDocumento(tipo);
         cargarTextosReferencias(tipo);
     }
@@ -177,7 +178,7 @@ public class FacturaTemplate {
 
     private void cargarTextosReferencias(String tipo) {
         PdfContentByte ref = writer.getDirectContent();
-
+        System.out.println(tipo);
         BaseFont bfTitulo = fuenteSemiBold.getBaseFont();
         ref.saveState();
         ref.beginText();
@@ -201,6 +202,14 @@ public class FacturaTemplate {
     	String[] datos = documento.getEmisor().toArray();
     	String[] cliente = documento.getReceptor().toArray();
     	String numeroDocumento = String.valueOf(documento.getNumeroDocumento());
+    	
+    	for(String dato : datos){
+    		System.out.println(dato);
+    	}
+    	
+    	for(String dato : cliente){
+    		System.out.println(dato);
+    	}
     	
         PdfContentByte ref = writer.getDirectContent();
         BaseFont bf = fuenteRegular.getBaseFont();
@@ -335,6 +344,8 @@ public class FacturaTemplate {
 	        ref.showTextAligned(2, df.format(SUBTOTAL).concat(" €"), 570, 160, 0);
 	        ref.showTextAligned(2, df.format(IVA).concat(" €"), 570, 140, 0);
 	        ref.showTextAligned(2, df.format(IRPF).concat(" €"), 570, 120, 0);
+        } else {
+        	throw new ListaProductosVacia("Lista vacia");
         }
         bfTitulo = fuenteSemiBold.getBaseFont();
         ref.setFontAndSize(bfTitulo, 20);
