@@ -48,7 +48,7 @@ public class FacturaTemplate {
      * @param lista -> Productos facturados/presupuestados
      */
     public FacturaTemplate(String path) {
-        
+        System.out.println("creo la template");
         //registramos las fuentes personalizadas
         FontFactory.register(path + "/font/Open_Sans/OpenSans-Light.ttf", "OpenSans_light");
         FontFactory.register(path + "/font/Open_Sans/OpenSans-Regular.ttf", "OpenSans_regular");
@@ -63,18 +63,20 @@ public class FacturaTemplate {
 
         this.baos = new ByteArrayOutputStream();
         this.document = new Document();
-
+        System.out.println("creo el documento");
         try {
             writer = PdfWriter.getInstance(document, baos);
         } catch (DocumentException ex) {
             System.out.println("Error: " + ex.getLocalizedMessage());
         }
-
+        System.out.println(documento.getEmisor().getNombre());
         document.open();
         try{
         	addTitulo(documento.getTipoDocumento().tipo());
         	cargarLogo(documento);
-        }catch(Exception e){}
+        }catch(Exception e){
+        	e.getLocalizedMessage();
+        }
         crearGraficos();
         crearTablaProductos();
         crearTablaDesglose();
@@ -82,7 +84,9 @@ public class FacturaTemplate {
         	cargarTextosBase(documento.getTipoDocumento().tipo());
         	cargarTextosFactura(documento);
         	addProductos(documento);
-        }catch(Exception e){}
+        }catch(Exception e){
+        	e.getLocalizedMessage();
+        }
         document.close();
 
         return baos;
@@ -300,37 +304,38 @@ public class FacturaTemplate {
         ref.saveState();
         ref.beginText();
         ref.setFontAndSize(bfTitulo, 8);
-        for (int i = 0; i < documento.getListaProductos().size(); i++) {
-            
-            Producto p = documento.getListaProductos().get(i);
-            
-            ref.showTextAligned(0, p.getCodigo(), 36, 470 - (i*15), 0);
-            ref.showTextAligned(0, p.getDescripcion(), 100, 470 - (i*15), 0);
-            ref.showTextAligned(2, df.format(p.getCantidad()), 430, 470 - (i*15), 0);
-            ref.showTextAligned(2, df.format(p.getPrecio()).concat(" €"), 500, 470 - (i*15), 0);
-            
-            String importe = df.format(p.getImporte()).concat(" €");
-            
-            if(p.isExentoIVA() | p.isExentoIRPF()) {
-                if(p.isExentoIRPF() && p.isExentoIVA()){
-                    importe = importe.concat(" **");
-                }else{
-                    importe = importe.concat(" *");
-                }
-            }
-            
-            ref.showTextAligned(2, importe, 570, 470 - (i*15), 0);
+        if (documento.getListaProductos() != null){
+	        for (int i = 0; i < documento.getListaProductos().size(); i++) {
+	            
+	            Producto p = documento.getListaProductos().get(i);
+	            
+	            ref.showTextAligned(0, p.getCodigo(), 36, 470 - (i*15), 0);
+	            ref.showTextAligned(0, p.getDescripcion(), 100, 470 - (i*15), 0);
+	            ref.showTextAligned(2, df.format(p.getCantidad()), 430, 470 - (i*15), 0);
+	            ref.showTextAligned(2, df.format(p.getPrecio()).concat(" €"), 500, 470 - (i*15), 0);
+	            
+	            String importe = df.format(p.getImporte()).concat(" €");
+	            
+	            if(p.isExentoIVA() | p.isExentoIRPF()) {
+	                if(p.isExentoIRPF() && p.isExentoIVA()){
+	                    importe = importe.concat(" **");
+	                }else{
+	                    importe = importe.concat(" *");
+	                }
+	            }
+	            
+	            ref.showTextAligned(2, importe, 570, 470 - (i*15), 0);
+	        }
+	        
+	        SUBTOTAL = calcularSUBTOTAL(documento.getListaProductos());
+	        IVA = calcularIVA(documento.getListaProductos());
+	        IRPF = calcularIRPF(documento.getListaProductos());
+	        TOTAL = SUBTOTAL + IVA - IRPF;
+	        
+	        ref.showTextAligned(2, df.format(SUBTOTAL).concat(" €"), 570, 160, 0);
+	        ref.showTextAligned(2, df.format(IVA).concat(" €"), 570, 140, 0);
+	        ref.showTextAligned(2, df.format(IRPF).concat(" €"), 570, 120, 0);
         }
-        
-        SUBTOTAL = calcularSUBTOTAL(documento.getListaProductos());
-        IVA = calcularIVA(documento.getListaProductos());
-        IRPF = calcularIRPF(documento.getListaProductos());
-        TOTAL = SUBTOTAL + IVA - IRPF;
-        
-        ref.showTextAligned(2, df.format(SUBTOTAL).concat(" €"), 570, 160, 0);
-        ref.showTextAligned(2, df.format(IVA).concat(" €"), 570, 140, 0);
-        ref.showTextAligned(2, df.format(IRPF).concat(" €"), 570, 120, 0);
-        
         bfTitulo = fuenteSemiBold.getBaseFont();
         ref.setFontAndSize(bfTitulo, 20);
         ref.showTextAligned(2, df.format(TOTAL).concat(" €"), 570, 80, 0);

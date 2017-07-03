@@ -30,6 +30,8 @@ public class PDF extends HttpServlet {
 	@Override
     protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		
+		System.out.println("Estoy llamando al server PDF");
+		
 		String fecha = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
 		
 		StringBuilder sb = new StringBuilder();
@@ -38,12 +40,15 @@ public class PDF extends HttpServlet {
 		Documento documento = null;
 		
 		try{
+			System.out.println("entro en el try...");
 			while((line = req.getReader().readLine()) != null){
+				System.out.println("entro en el while");
 				sb.append(line);
 				System.out.println(sb.toString());
 			}
 			
 			documento = (Documento) gson.fromJson(sb.toString(), Documento.class);
+			System.out.print(documento.getLogo());
 			
 		}catch(Exception e){
 			System.out.println("exception: " + e.getMessage());
@@ -56,12 +61,12 @@ public class PDF extends HttpServlet {
         
         try {
             baos = factura.CrearDocumento(documento);
-            StringBuilder fileName = new StringBuilder().append(documento.getNumeroDocumento()).append("_").append(fecha).append("_").append(documento.getTipoDocumento().tipo()).append(".pdf");
+            //StringBuilder fileName = new StringBuilder().append(documento.getNumeroDocumento()).append("_").append(fecha).append("_").append(documento.getTipoDocumento().tipo()).append(".pdf");
             resp.setHeader("Expires", "0");
             resp.setHeader("Cache-Control", "must-revalidate, post-check=0, pre-check=0");
             resp.setHeader("Pragma", "public");
-            resp.addHeader("Content-Disposition", "attachment; filename=" + fileName);
-
+            //resp.addHeader("Content-Disposition", "attachment; filename=" + fileName);
+            resp.addHeader("Content-Disposition", "attachment; filename=archivo.pdf");
             resp.setContentType("application/pdf");
 
             resp.setContentLength(baos.size());
