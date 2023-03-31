@@ -1,22 +1,24 @@
 package com.pdfcreator.utiles;
 
-/**
- *
- * @author ggamboa
- */
-public enum TipoDocumento{
-    PRESUPUESTO("Presupuesto"),
-    FACTURA("Factura"),
-    UNKWOWN("Desconocido");
-    
-    private String tipo;
-    
-    private TipoDocumento(String tipo){
-        this.tipo = tipo;
+import java.util.Arrays;
+
+public enum TipoDocumento {
+    PRESUPUESTO(0),
+    FACTURA(1),
+    UNKWOWN(2);
+
+    private int code;
+
+    private TipoDocumento(int code) {
+        this.code = code;
     }
-    
-    public String tipo(){
-        return tipo;
+
+    public int code() {
+        return code;
     }
-    
+
+    public static TipoDocumento resolveCode(int code) {
+        return Arrays.stream(TipoDocumento.values()).filter(element -> element.code() == code).findFirst().orElse(TipoDocumento.UNKWOWN);
+    }
+
 }

@@ -1,5 +1,12 @@
 package com.pdfcreator.utiles;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.text.DecimalFormat;
+import java.util.Base64;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import com.itextpdf.text.BadElementException;
 import com.itextpdf.text.BaseColor;
 import com.itextpdf.text.Document;
@@ -16,37 +23,20 @@ import com.itextpdf.text.pdf.PdfWriter;
 import com.pdfcreator.exceptions.ListaProductosVacia;
 import com.pdfcreator.modelos.Documento;
 import com.pdfcreator.modelos.Producto;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 
-import static com.pdfcreator.logica.CalculosFacturas.*;
-import java.text.DecimalFormat;
-import java.util.Base64;
+import static com.pdfcreator.logica.CalculosFacturas.calcularIRPF;
+import static com.pdfcreator.logica.CalculosFacturas.calcularIVA;
+import static com.pdfcreator.logica.CalculosFacturas.calcularSUBTOTAL;
 
-/**
- *
- * @author ggamboa
- */
 public class FacturaTemplate {
 
     private static PdfWriter writer;
-    private DecimalFormat df = new DecimalFormat("0.00");
-    
-    private float SUBTOTAL;
-    private float IVA;
-    private float IRPF;
-    private float TOTAL;
-    
-    private ByteArrayOutputStream baos;
+    private final DecimalFormat df = new DecimalFormat("0.00");
+
     private Document document;
-    private Font fuenteRegular;
-    private Font fuenteSemiBold;
-    
-    /**
-     *
-     * @param path -> Ruta a los recursos.
-     * @param lista -> Productos facturados/presupuestados
-     */
+    private final Font fuenteRegular;
+    private final Font fuenteSemiBold;
+
     public FacturaTemplate(String path) {
         //registramos las fuentes personalizadas
         FontFactory.register(path + "/font/Open_Sans/OpenSans-Light.ttf", "OpenSans_light");
@@ -58,33 +48,39 @@ public class FacturaTemplate {
         this.fuenteSemiBold = FontFactory.getFont("OpenSans_semibold", BaseFont.IDENTITY_H, BaseFont.EMBEDDED, 10);
     }
 
-    public ByteArrayOutputStream CrearDocumento(Documento documento) throws ListaProductosVacia {
+    public ByteArrayOutputStream crearDocumento(Documento documento) throws ListaProductosVacia {
 
-        this.baos = new ByteArrayOutputStream();
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
         this.document = new Document();
-        
+
         try {
             writer = PdfWriter.getInstance(document, baos);
-        } catch (DocumentException ex) {
+        }
+        catch (DocumentException ex) {
             System.out.println("Error: " + ex.getLocalizedMessage());
         }
-        
+
         document.open();
-        try{
-        	addTitulo(documento.getTipoDocumento().tipo());
-        	cargarLogo(documento);
-        }catch(Exception e){
-        	e.printStackTrace();
+        try {
+            addTitulo(TipoDocumento.resolveCode(documento.getTipoDocumento()).name());
+            cargarLogo(documento);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
         }
         crearGraficos();
         crearTablaProductos();
-        crearTablaDesglose();
-        try{
-        	cargarTextosBase(documento.getTipoDocumento().tipo());
-        	cargarTextosFactura(documento);
-        	addProductos(documento);
-        }catch(Exception e){
-        	e.printStackTrace();
+
+        List<Float> ivaList = documento.getListaProductos().stream().map(Producto::getIva).collect(Collectors.toList());
+        List<Float> irpfList = documento.getListaProductos().stream().map(Producto::getIrpf).collect(Collectors.toList());
+        crearTablaDesglose(ivaList, irpfList, documento.getNota());
+        try {
+            cargarTextosBase(TipoDocumento.resolveCode(documento.getTipoDocumento()).name());
+            cargarTextosFactura(documento);
+            addProductos(documento);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
         }
         document.close();
 
@@ -92,8 +88,8 @@ public class FacturaTemplate {
     }
 
     private void addTitulo(String titulo) {
-    	System.out.println(titulo);
-    	document.addTitle(titulo);
+        System.out.println(titulo);
+        document.addTitle(titulo);
     }
 
     private void cargarLogo(Documento documento) {
@@ -101,15 +97,18 @@ public class FacturaTemplate {
         try {
             Image image = Image.getInstance(Base64.getDecoder().decode(documento.getLogo()));
             System.out.println(documento.getLogo());
-            float aspectRatio = ((image.getWidth() * 60) / image.getHeight());
+            float aspectRatio = (image.getWidth() * 60) / image.getHeight();
             image.scaleAbsolute(aspectRatio, 60f);
             image.setAbsolutePosition(36f, 750f);
             document.add(image);
-        } catch (BadElementException ex) {
+        }
+        catch (BadElementException ex) {
             System.out.println("Error: " + ex.getLocalizedMessage());
-        } catch (IOException ex) {
+        }
+        catch (IOException ex) {
             System.out.println("Error: " + ex.getLocalizedMessage());
-        } catch (DocumentException ex) {
+        }
+        catch (DocumentException ex) {
             System.out.println("Error: " + ex.getLocalizedMessage());
         }
     }
@@ -125,7 +124,7 @@ public class FacturaTemplate {
         rec.setBorderWidthTop(4f);
         cb.rectangle(rec);
 
-        //Preparamos el grafico de rombo 
+        //Preparamos el grafico de rombo
         float rotate = 45;
         float width = 22;
         float height = 22;
@@ -152,12 +151,7 @@ public class FacturaTemplate {
         writer.getDirectContent().addTemplate(template, fxScale, fxRote, fyRote, fyScale, x, y);
     }
 
-    /**
-     *
-     * @param tipoDocumento -> Factura o Presupuesto
-     */
     private void cargarTextosBase(String tipo) {
-    	System.out.println(tipo);
         cargarTituloDocumento(tipo);
         cargarTextosReferencias(tipo);
     }
@@ -178,14 +172,13 @@ public class FacturaTemplate {
 
     private void cargarTextosReferencias(String tipo) {
         PdfContentByte ref = writer.getDirectContent();
-        System.out.println(tipo);
         BaseFont bfTitulo = fuenteSemiBold.getBaseFont();
         ref.saveState();
         ref.beginText();
         ref.setFontAndSize(bfTitulo, 10);
         ref.setColorFill(new GrayColor(0.2f));
         ref.showTextAligned(0, tipo + " Nº:", 36, 700, 0);
-        ref.showTextAligned(0, "Fecha:", 36, 685, 0);
+        ref.showTextAligned(0, "Fecha emisión:", 36, 685, 0);
         ref.showTextAligned(0, "Nombre:", 36, 670, 0);
         ref.showTextAligned(0, "NIF:", 36, 655, 0);
         ref.showTextAligned(0, "Dirección:", 36, 640, 0);
@@ -199,18 +192,11 @@ public class FacturaTemplate {
 
     public void cargarTextosFactura(Documento documento) {
 
-    	String[] datos = documento.getEmisor().toArray();
-    	String[] cliente = documento.getReceptor().toArray();
-    	String numeroDocumento = String.valueOf(documento.getNumeroDocumento());
-    	
-    	for(String dato : datos){
-    		System.out.println(dato);
-    	}
-    	
-    	for(String dato : cliente){
-    		System.out.println(dato);
-    	}
-    	
+        String[] datos = documento.getEmisor().toArray();
+        String[] cliente = documento.getReceptor().toArray();
+        String numeroDocumento = String.format("%d%s", documento.getNumeroDocumento(), documento.getSufijo());
+        String fechaEmision = String.valueOf(documento.getFechaEmision());
+
         PdfContentByte ref = writer.getDirectContent();
         BaseFont bf = fuenteRegular.getBaseFont();
         ref.saveState();
@@ -219,16 +205,17 @@ public class FacturaTemplate {
         ref.setColorFill(new GrayColor(0.35f));
 
         ref.showTextAligned(0, numeroDocumento, 136, 700, 0);
-        
+        ref.showTextAligned(0, fechaEmision, 136, 685, 0);
+
         for (int i = 0; i < datos.length; i++) {
             if (datos[i] != null) {
-                ref.showTextAligned(0, datos[i], 136, (685 - (i * 15)), 0);
+                ref.showTextAligned(0, datos[i], 136, 670 - (i * 15), 0);
             }
         }
 
         for (int i = 0; i < cliente.length; i++) {
             if (cliente[i] != null) {
-                ref.showTextAligned(0, cliente[i], 136, (600 - (i * 15)), 0);
+                ref.showTextAligned(0, cliente[i], 136, 600 - (i * 15), 0);
             }
         }
 
@@ -265,21 +252,19 @@ public class FacturaTemplate {
         ref.endText();
         ref.restoreState();
     }
-    
-    private void crearTablaDesglose() {
+
+    private void crearTablaDesglose(List<Float> ivaList, List<Float> irpfList, String nota) {
         PdfContentByte cb = writer.getDirectContent();
 
         //Rectangulo gris cabecera de la factura
         Rectangle rec = new Rectangle(0, 60, 596, 200);
         rec.setBackgroundColor(BaseColor.WHITE);
         rec.setBorderColorTop(new GrayColor(0.80f));
-        //rec.setBorderColorBottom(new GrayColor(0.98f));
         rec.setBorderWidthTop(1.25f);
-        //rec.setBorderWidthBottom(0.5f);
         cb.rectangle(rec);
-        
-        //Rectangulo gris cabecera de la factura
-        Rectangle rec2 = new Rectangle(370, 70, 580, 105);
+
+        //Rectangulo gris total amount
+        Rectangle rec2 = new Rectangle(370, 15, 580, 55);
         rec2.setBackgroundColor(new GrayColor(0.90f));
         cb.rectangle(rec2);
 
@@ -291,21 +276,23 @@ public class FacturaTemplate {
         ref.beginText();
         ref.setFontAndSize(bfTitulo, 8);
 
-        ref.showTextAligned(0, "* Indica un concepto exento de impuestos. ** Indica un concepto parcialmente sujeto a impuestos", 36, 185, 0);
-        
-        ref.showTextAligned(2, "Subtotal", 430, 160, 0);
-        ref.showTextAligned(2, "IVA (21.00%)", 430, 140, 0);
-        ref.showTextAligned(2, "IRPF (7.00%)", 430, 120, 0);
-        
+        if (nota != null) ref.showTextAligned(0, String.format("NOTA: %s", nota), 36, 185, 0);
+        ref.showTextAligned(0, "* Indica un concepto parcialmente sujeto a impuestos.", 36, 165, 0);
+        ref.showTextAligned(0, "** Indica un concepto exento de impuestos", 36, 155, 0);
+
+        ref.showTextAligned(2, "Subtotal", 430, 120, 0);
+        ref.showTextAligned(2, String.format("IVA (%.2f%%)", ivaList.stream().findFirst().orElse(0.00f)), 430, 100, 0);
+        ref.showTextAligned(2, String.format("IRPF (%.2f%%)", irpfList.stream().findFirst().orElse(0.00f)), 430, 80, 0);
+
         bfTitulo = fuenteSemiBold.getBaseFont();
         ref.setFontAndSize(bfTitulo, 20);
-        ref.showTextAligned(2, "Total", 430, 80, 0);
+        ref.showTextAligned(2, "Total", 430, 27, 0);
         ref.endText();
         ref.restoreState();
     }
 
     private void addProductos(Documento documento) throws ListaProductosVacia {
-        
+
         PdfContentByte ref = writer.getDirectContent();
 
         BaseFont bfTitulo = fuenteRegular.getBaseFont();
@@ -313,44 +300,45 @@ public class FacturaTemplate {
         ref.saveState();
         ref.beginText();
         ref.setFontAndSize(bfTitulo, 8);
-        if (documento.getListaProductos() != null){
-	        for (int i = 0; i < documento.getListaProductos().size(); i++) {
-	            
-	            Producto p = documento.getListaProductos().get(i);
-	            
-	            ref.showTextAligned(0, p.getCodigo(), 36, 470 - (i*15), 0);
-	            ref.showTextAligned(0, p.getDescripcion(), 100, 470 - (i*15), 0);
-	            ref.showTextAligned(2, df.format(p.getCantidad()), 430, 470 - (i*15), 0);
-	            ref.showTextAligned(2, df.format(p.getPrecio()).concat(" €"), 500, 470 - (i*15), 0);
-	            
-	            String importe = df.format(p.getImporte()).concat(" €");
-	            
-	            if(p.isExentoIVA() | p.isExentoIRPF()) {
-	                if(p.isExentoIRPF() && p.isExentoIVA()){
-	                    importe = importe.concat(" **");
-	                }else{
-	                    importe = importe.concat(" *");
-	                }
-	            }
-	            
-	            ref.showTextAligned(2, importe, 570, 470 - (i*15), 0);
-	        }
-	        
-	        SUBTOTAL = calcularSUBTOTAL(documento.getListaProductos());
-	        IVA = calcularIVA(documento.getListaProductos());
-	        IRPF = calcularIRPF(documento.getListaProductos());
-	        TOTAL = SUBTOTAL + IVA - IRPF;
-	        
-	        ref.showTextAligned(2, df.format(SUBTOTAL).concat(" €"), 570, 160, 0);
-	        ref.showTextAligned(2, df.format(IVA).concat(" €"), 570, 140, 0);
-	        ref.showTextAligned(2, df.format(IRPF).concat(" €"), 570, 120, 0);
-        } else {
-        	throw new ListaProductosVacia("Lista vacia");
+        float total;
+        if (documento.getListaProductos() != null) {
+            for (int i = 0; i < documento.getListaProductos().size(); i++) {
+
+                Producto p = documento.getListaProductos().get(i);
+
+                ref.showTextAligned(0, p.getCodigo(), 36, 470 - (i * 15), 0);
+                ref.showTextAligned(0, p.getDescripcion(), 100, 470 - (i * 15), 0);
+                ref.showTextAligned(2, df.format(p.getCantidad()), 430, 470 - (i * 15), 0);
+                ref.showTextAligned(2, df.format(p.getPrecio()).concat(" €"), 500, 470 - (i * 15), 0);
+
+                ref.showTextAligned(2, String.format("%s €", p.getImporte()), 570, 470 - (i * 15), 0);
+
+                if (p.isExentoIVA() | p.isExentoIRPF()) {
+                    if (p.isExentoIRPF() && p.isExentoIVA()) {
+                        ref.showTextAligned(0, "**", 575, 470 - (i * 15), 0);
+                    }
+                    else {
+                        ref.showTextAligned(0, "*", 575, 470 - (i * 15), 0);
+                    }
+                }
+            }
+
+            float subtotal = calcularSUBTOTAL(documento.getListaProductos());
+            float iva = calcularIVA(documento.getListaProductos());
+            float irpf = calcularIRPF(documento.getListaProductos());
+            total = subtotal + iva - irpf;
+
+            ref.showTextAligned(2, df.format(subtotal).concat(" €"), 570, 120, 0);
+            ref.showTextAligned(2, df.format(iva).concat(" €"), 570, 100, 0);
+            ref.showTextAligned(2, df.format(irpf).concat(" €"), 570, 80, 0);
+        }
+        else {
+            throw new ListaProductosVacia("Lista vacia");
         }
         bfTitulo = fuenteSemiBold.getBaseFont();
         ref.setFontAndSize(bfTitulo, 20);
-        ref.showTextAligned(2, df.format(TOTAL).concat(" €"), 570, 80, 0);
-        
+        ref.showTextAligned(2, df.format(total).concat(" €"), 570, 27, 0);
+
         ref.endText();
         ref.restoreState();
     }

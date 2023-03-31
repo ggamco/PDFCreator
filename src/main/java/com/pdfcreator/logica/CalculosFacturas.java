@@ -19,7 +19,7 @@ public class CalculosFacturas {
 
                 if (!p.isExentoIVA()) {
 
-                    iva += p.getIVA() * p.getImporte() / 100;
+                    iva += p.getIva() * p.getImporte() / 100;
 
                 }
 
@@ -40,7 +40,7 @@ public class CalculosFacturas {
 
                 if (!p.isExentoIRPF()) {
 
-                    irpf += p.getIRPF() * p.getImporte() / 100;
+                    irpf += p.getIrpf() * p.getImporte() / 100;
 
                 }
 
